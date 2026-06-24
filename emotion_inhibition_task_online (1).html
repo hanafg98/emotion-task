@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>تکلیف مهار هیجانی</title>
+
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body{
+  font-family:Tahoma, Arial, sans-serif;
+  text-align:center;
+  background:#f4f4f4;
+  padding:16px;
+  margin:0;
+}
+
+#container{
+  background:white;
+  padding:28px 24px;
+  border-radius:12px;
+  max-width:680px;
+  margin:auto;
+  box-shadow:0 0 12px rgba(0,0,0,0.12);
+}
+
+/* ── فرم اطلاعات ── */
+#participantForm{ text-align:right; font-size:16px; line-height:2.2; }
+#participantForm h2{ text-align:center; font-size:20px; margin-bottom:10px; }
+#participantForm label{ display:block; margin-top:12px; font-weight:bold; }
+#participantForm input,
+#participantForm select{
+  width:100%; padding:10px 12px; font-size:16px;
+  font-family:Tahoma,Arial,sans-serif;
+  border:1px solid #ccc; border-radius:8px; direction:rtl;
+}
+.error{ color:red; font-size:13px; display:none; }
+
+/* ── دستورالعمل ── */
+#instructions{ text-align:right; line-height:2.2; font-size:16px; }
+#instructions h2{ text-align:center; }
+
+/* ── معرفی مرحله ── */
+#phaseInfo{ display:none; font-size:18px; line-height:2.2; }
+
+/* ── محرک ── */
+#stimulus{
+  font-size:clamp(48px,14vw,72px);
+  font-weight:bold;
+  height:110px;
+  line-height:110px;
+  margin:20px 0;
+  color:#222;
+  user-select:none;
+}
+
+/* ── دکمه‌های tap ── */
+#tapArea{
+  display:none;
+  margin:10px auto 6px;
+  width:100%;
+}
+
+#tapBtn{
+  width:100%;
+  max-width:340px;
+  height:80px;
+  font-size:20px;
+  font-family:Tahoma,Arial,sans-serif;
+  background:#27ae60;
+  color:white;
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(39,174,96,0.35);
+  touch-action:manipulation;
+  transition:background .15s;
+}
+#tapBtn:active{ background:#1e8449; }
+
+#tapHint{
+  font-size:13px;
+  color:#888;
+  margin-top:6px;
+}
+
+/* ── دکمه‌های عمومی ── */
+.btn{
+  display:inline-block;
+  margin-top:16px;
+  padding:12px 34px;
+  font-size:17px;
+  font-family:Tahoma,Arial,sans-serif;
+  background:#4a90d9;
+  color:white;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.btn:active{ background:#357ab8; }
+
+/* ── پایان ── */
+#endMessage{ display:none; font-size:19px; line-height:2.4; color:#333; }
+#sendingMsg{ color:#888; font-size:15px; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<div id="container">
+
+  <!-- ① فرم اطلاعات آزمودنی -->
+  <div id="participantForm">
+    <h2>اطلاعات آزمودنی</h2>
+
+    <label for="age">سن:</label>
+    <input type="number" id="age" inputmode="numeric" min="10" max="100" placeholder="مثلاً 25">
+    <span class="error" id="ageErr">لطفاً سن معتبر وارد کنید.</span>
+
+    <label for="gender">جنسیت:</label>
+    <select id="gender">
+      <option value="">-- انتخاب کنید --</option>
+      <option value="مرد">مرد</option>
+      <option value="زن">زن</option>
+      <option value="سایر">سایر</option>
+    </select>
+    <span class="error" id="genderErr">لطفاً جنسیت را انتخاب کنید.</span>
+
+    <label for="contact">شماره تلفن یا آیدی شبکه اجتماعی:</label>
+    <input type="text" id="contact" placeholder="مثلاً @username یا 09121234567">
+    <span class="error" id="contactErr">لطفاً این فیلد را پر کنید.</span>
+
+    <br>
+    <button class="btn" onclick="submitParticipantInfo()">ادامه</button>
+  </div>
+
+  <!-- ② دستورالعمل -->
+  <div id="instructions" style="display:none;">
+    <h2>دستورالعمل آزمایش</h2>
+    <p>این آزمایش سه مرحله دارد:</p>
+    <p>
+      ۱- <b>مرحله تمرین:</b> کلماتی به مدت یک ثانیه ظاهر می‌شوند.<br>
+      اگر کلمه <b>خنثی</b> بود → <b>دکمه را بزنید</b> (یا Space)<br>
+      اگر کلمه <b>منفی</b> بود → <b>هیچ کاری نکنید</b><br>
+      در این مرحله فیدبک درست/نادرست دریافت می‌کنید.
+    </p>
+    <p>
+      ۲- <b>مرحله یادگیری:</b> همان قانون مرحله قبل.<br>
+      در این مرحله بازخورد دریافت نمی‌کنید.
+    </p>
+    <p>
+      ۳- <b>مرحله تغییر قاعده:</b><br>
+      کلمه <b>خنثی</b> → <b>هیچ کاری نکنید</b><br>
+      کلمه <b>منفی</b> → <b>دکمه را بزنید</b> (یا Space)<br>
+      در این مرحله نیز بازخورد دریافت نمی‌کنید.
+    </p>
+    <p>از شرکت شما در این آزمایش سپاسگزاریم.</p>
+    <button class="btn" id="startBtn" onclick="startExperiment()">شروع آزمایش</button>
+  </div>
+
+  <!-- ③ معرفی مرحله -->
+  <div id="phaseInfo"></div>
+
+  <!-- ④ محرک -->
+  <div id="stimulus"></div>
+
+  <!-- دکمه tap برای موبایل -->
+  <div id="tapArea">
+    <button id="tapBtn" ontouchstart="handleTap(event)" onclick="handleTap(event)">بزن!</button>
+    <div id="tapHint">برای پاسخ دادن این دکمه را بزنید</div>
+  </div>
+
+  <!-- دکمه شروع مرحله -->
+  <button class="btn" id="phaseBtn" style="display:none;" onclick="beginTrials()">شروع مرحله</button>
+
+  <!-- ⑤ پایان -->
+  <div id="endMessage">
+    <p>✅ آزمایش به پایان رسید.</p>
+    <p>نتایج شما با موفقیت ثبت شد.</p>
+    <p id="sendingMsg"></p>
+  </div>
+
+</div>
+
+
+<script>
+/* ═══════════════════════════════════════
+   تنظیمات
+═══════════════════════════════════════ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwoHah-bnIMX0AAySe2NUwC3ZLZx4Y7oMcXgB9zAxY/dev";
+
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+              || ('ontouchstart' in window);
+
+let participantAge="", participantGender="", participantContact="";
+let phase=0, currentTrial=0;
+let results=[], trials=[];
+let startTime, isWaiting=false, timeoutHandle;
+let tapHandled=false; // جلوگیری از ثبت دوتایی touch+click
+
+const neutral  = ["میز","کتاب","مداد","درخت","لیوان","ساعت","صندلی","دفتر"];
+const negative = ["خشم","ترس","غم","نفرت","تحقیر","اضطراب","فاجعه","رنج"];
+
+
+/* ═══════════════════════════════════════
+   ① فرم اطلاعات
+═══════════════════════════════════════ */
+function submitParticipantInfo(){
+  let valid=true;
+  const age=document.getElementById("age").value.trim();
+  const gender=document.getElementById("gender").value;
+  const contact=document.getElementById("contact").value.trim();
+
+  document.getElementById("ageErr").style.display="none";
+  if(!age||isNaN(age)||+age<10||+age>100){
+    document.getElementById("ageErr").style.display="block"; valid=false;
+  }
+  document.getElementById("genderErr").style.display="none";
+  if(!gender){
+    document.getElementById("genderErr").style.display="block"; valid=false;
+  }
+  document.getElementById("contactErr").style.display="none";
+  if(!contact){
+    document.getElementById("contactErr").style.display="block"; valid=false;
+  }
+  if(!valid) return;
+
+  participantAge=age; participantGender=gender; participantContact=contact;
+  document.getElementById("participantForm").style.display="none";
+  document.getElementById("instructions").style.display="block";
+}
+
+
+/* ═══════════════════════════════════════
+   ② شروع آزمایش
+═══════════════════════════════════════ */
+function startExperiment(){
+  document.getElementById("instructions").style.display="none";
+  showPhaseIntro();
+}
+
+
+/* ═══════════════════════════════════════
+   ③ معرفی مرحله
+═══════════════════════════════════════ */
+function showPhaseIntro(){
+  phase++;
+  if(phase>3){ sendToSheets(); return; }
+
+  let rule="";
+  if(phase===1){
+    rule = isMobile
+      ? "کلمه <b>خنثی</b> → دکمه را بزنید<br>کلمه <b>منفی</b> → هیچ کاری نکنید"
+      : "کلمه <b>خنثی</b> → کلید Space را بزنید<br>کلمه <b>منفی</b> → هیچ کاری نکنید";
+  } else if(phase===2){
+    rule = isMobile
+      ? "کلمه <b>خنثی</b> → دکمه را بزنید<br>کلمه <b>منفی</b> → هیچ کاری نکنید"
+      : "کلمه <b>خنثی</b> → Space<br>کلمه <b>منفی</b> → عدم پاسخ";
+  } else {
+    rule = isMobile
+      ? "کلمه <b>خنثی</b> → هیچ کاری نکنید<br>کلمه <b>منفی</b> → دکمه را بزنید"
+      : "کلمه <b>خنثی</b> → عدم پاسخ<br>کلمه <b>منفی</b> → فشردن Space";
+  }
+
+  const titles=["","مرحله تمرین","مرحله یادگیری","مرحله تغییر قاعده"];
+  const feedback=[
+    "",
+    "در این مرحله بازخورد دریافت می‌کنید.",
+    "در این مرحله بازخوردی دریافت نمی‌کنید.",
+    "در این مرحله نیز بازخوردی دریافت نمی‌کنید."
+  ];
+
+  document.getElementById("phaseInfo").innerHTML=
+    `<b>${titles[phase]}</b><br><br>قاعده:<br>${rule}<br><br>${feedback[phase]}`;
+  document.getElementById("phaseInfo").style.display="block";
+  document.getElementById("phaseBtn").style.display="inline";
+}
+
+
+/* ═══════════════════════════════════════
+   ④ شروع trial‌ها
+═══════════════════════════════════════ */
+function beginTrials(){
+  document.getElementById("phaseInfo").style.display="none";
+  document.getElementById("phaseBtn").style.display="none";
+
+  let count=(phase===1)?10:20;
+  trials=[];
+  for(let i=0;i<count;i++){
+    trials.push((i%2===0)
+      ?{w:neutral[i%neutral.length],type:"Neutral"}
+      :{w:negative[i%negative.length],type:"Negative"});
+  }
+  trials.sort(()=>Math.random()-0.5);
+  currentTrial=0;
+
+  // نمایش دکمه tap فقط روی موبایل
+  document.getElementById("tapArea").style.display = isMobile ? "block" : "none";
+
+  nextTrial();
+}
+
+
+/* ═══════════════════════════════════════
+   ⑤ نمایش محرک
+═══════════════════════════════════════ */
+function nextTrial(){
+  if(currentTrial>=trials.length){ showPhaseIntro(); return; }
+  document.getElementById("stimulus").innerText=trials[currentTrial].w;
+  startTime=Date.now();
+  isWaiting=true;
+  tapHandled=false;
+  timeoutHandle=setTimeout(()=>{
+    if(isWaiting) handleResponse(false);
+  },1000);
+}
+
+
+/* ═══════════════════════════════════════
+   ⑥ دریافت پاسخ
+═══════════════════════════════════════ */
+
+// کیبورد (کامپیوتر)
+window.onkeydown=function(e){
+  if(e.code==="Space" && isWaiting){
+    e.preventDefault();
+    clearTimeout(timeoutHandle);
+    handleResponse(true);
+  }
+};
+
+// لمس / کلیک دکمه (موبایل)
+function handleTap(e){
+  if(e.type==="touchstart"){ tapHandled=true; }
+  if(e.type==="click" && tapHandled){ tapHandled=false; return; } // از دوبار ثبت جلوگیری می‌کند
+  if(!isWaiting) return;
+  clearTimeout(timeoutHandle);
+  handleResponse(true);
+}
+
+function handleResponse(pressed){
+  if(!isWaiting) return;
+  isWaiting=false;
+
+  const rt = pressed ? (Date.now()-startTime) : "";
+  const t  = trials[currentTrial];
+  const isGoPhase=(phase<3);
+  const shouldGo = isGoPhase ? (t.type==="Neutral") : (t.type==="Negative");
+  const acc=(pressed===shouldGo);
+
+  results.push({
+    Timestamp : new Date().toISOString(),
+    Age       : participantAge,
+    Gender    : participantGender,
+    Contact   : participantContact,
+    Phase     : phase,
+    Word      : t.w,
+    Type      : t.type,
+    Response  : pressed?"Go":"No-Go",
+    RT        : rt,
+    Accuracy  : acc
+  });
+
+  if(phase===1){
+    document.getElementById("stimulus").innerText=acc?"✓":"✗";
+    setTimeout(()=>{ currentTrial++; nextTrial(); },800);
+  } else {
+    document.getElementById("stimulus").innerText="";
+    currentTrial++;
+    nextTrial();
+  }
+}
+
+
+/* ═══════════════════════════════════════
+   ⑦ ارسال به Google Sheets
+═══════════════════════════════════════ */
+function sendToSheets(){
+  document.getElementById("stimulus").innerText="";
+  document.getElementById("tapArea").style.display="none";
+  document.getElementById("endMessage").style.display="block";
+  document.getElementById("sendingMsg").innerText="در حال ارسال داده‌ها...";
+
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({rows:results})
+  })
+  .then(()=>{
+    document.getElementById("sendingMsg").innerText="✅ داده‌ها با موفقیت ارسال شدند.";
+  })
+  .catch(err=>{
+    console.error(err);
+    document.getElementById("sendingMsg").innerText="⚠️ خطا در ارسال. اتصال اینترنت را بررسی کنید.";
+  });
+}
+</script>
+
+</body>
+</html>
